@@ -31,6 +31,27 @@ class UnitConverter {
         Unit(name: 'Kelvin', toBase: (v) => v - 273.15, fromBase: (v) => v + 273.15),
       ],
     ),
+
+    //Capacidade
+    UnitCategory(
+      name: 'Volume',
+      units: [
+        Unit(name: 'Litros', toBase: (v) => v, fromBase: (v) => v),
+        Unit(name: 'Mililitros', toBase: (v) => v * 0.001, fromBase: (v) => v / 0.001),
+        Unit(name: 'Galões (US)', toBase: (v) => v * 3.78541, fromBase: (v) => v / 3.78541),
+        Unit(name: 'Onças fluidas (US)', toBase: (v) => v * 0.0295735, fromBase: (v) => v / 0.0295735),
+      ],
+    ),
+    // Tempo
+    UnitCategory(
+      name: 'Tempo',
+      units: [
+        Unit(name: 'Segundos', toBase: (v) => v, fromBase: (v) => v),
+        Unit(name: 'Minutos', toBase: (v) => v * 60, fromBase: (v) => v / 60),
+        Unit(name: 'Horas', toBase: (v) => v * 3600, fromBase: (v) => v / 3600),
+        Unit(name: 'Dias', toBase: (v) => v * 86400, fromBase: (v) => v / 86400),
+      ],
+    ),
   ];
 
   static double convert(double value, Unit fromUnit, Unit toUnit) {

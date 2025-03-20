@@ -1,9 +1,6 @@
-// lib/screens/converter_screen.dart
 import 'package:flutter/material.dart';
-import '../models/unit.dart' as models;  
-import '../utils/converter.dart' as utils;  
-
-
+import '../models/unit.dart';
+import '../utils/converter.dart';
 
 class ConverterScreen extends StatefulWidget {
   @override
@@ -11,12 +8,11 @@ class ConverterScreen extends StatefulWidget {
 }
 
 class _ConverterScreenState extends State<ConverterScreen> {
-  String selectedCategory = 'Comprimento';
-  models.Unit? fromUnit;
-  models.Unit? toUnit;
-  double inputValue = 0.0;
-  double result = 0.0;
-  final TextEditingController _controller = TextEditingController();
+  final _valueController = TextEditingController();
+  String _currentCategory = 'Comprimento';
+  Unit? _fromUnit;
+  Unit? _toUnit;
+  String _result = '';
 
   @override
   void initState() {
@@ -25,137 +21,135 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 
   void _updateUnits() {
-    final category = utils.UnitConverter.categories.firstWhere(
-      
-      (cat) => cat.name == selectedCategory,
-    );
+    final category = UnitConverter.categories.firstWhere((c) => c.name == _currentCategory);
     setState(() {
-      fromUnit = category.units[0];
-      toUnit = category.units[1];
+      _fromUnit = category.units[0];
+      _toUnit = category.units[1];
+      _valueController.clear();
+      _result = '';
     });
   }
 
   void _convert() {
-    if (fromUnit != null && toUnit != null) {
-      try {
-        setState(() {
-          result = utils.UnitConverter.convert(inputValue, fromUnit!, toUnit!);
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(
-          
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro: Entrada inválida')));
-      }
+    double value = double.tryParse(_valueController.text) ?? 0;
+    if (_fromUnit != null && _toUnit != null) {
+      double result = UnitConverter.convert(value, _fromUnit!, _toUnit!);
+      setState(() {
+        _result = result.toStringAsFixed(2);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final category = utils.UnitConverter.categories.firstWhere(
-      
-      (cat) => cat.name == selectedCategory,
-    );
+    final currentCategory = UnitConverter.categories.firstWhere((c) => c.name == _currentCategory);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Unit Converter')),
+      appBar: AppBar(
+        title: Text('Unit Converter - $_currentCategory'),
+      ),
+      drawer: Drawer(
+        child: Container(
+          color: Color(0xFF212121),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Color(0xFFD32F2F),
+                ),
+                child: Text(
+                  'Conversores',
+                  style: TextStyle(
+                    color: Color(0xFFF5F5F5),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ...UnitConverter.categories.map((category) => ListTile(
+                    title: Text(
+                      category.name,
+                      style: TextStyle(color: Color(0xFFF5F5F5)),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        _currentCategory = category.name;
+                        _updateUnits();
+                      });
+                      Navigator.pop(context);
+                    },
+                  )),
+            ],
+          ),
+        ),
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButton<String>(
-              value: selectedCategory,
-              isExpanded: true,
-              items:
-                 
-                  utils.UnitConverter.categories
-                          .map(
-                        
-                        (cat) => DropdownMenuItem(
-                            value: cat.name,
-                            child: Text(cat.name),
-                          ),
-                      )
-                          .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value!;
-                  _updateUnits();
-                });
-              },
-            ),
-            SizedBox(height: 16),
             TextField(
-              controller: _controller,
+              controller: _valueController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Valor',
-                border: OutlineInputBorder(),
               ),
-              onChanged: (value) {
-                setState(() {
-                  inputValue = double.tryParse(value) ?? 0.0;
-                });
-              },
+              style: TextStyle(color: Color(0xFFF5F5F5)),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
-                  child: DropdownButton<models.Unit>(
-                    value: fromUnit,
-                    isExpanded: true,
-                    items:
-                       
-                        category.units
-                                .map(
-                              
-                              (unit) => DropdownMenuItem(
-                                  value: unit,
-                                  child: Text(unit.name),
-                                ),
-                            )
-                                .toList(),
-                    onChanged: (value) => setState(() => fromUnit = value),
+                  child: DropdownButton<Unit>(
+                    value: _fromUnit,
+                    items: currentCategory.units
+                        .map((unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit.name),
+                            ))
+                        .toList(),
+                    onChanged: (value) => setState(() => _fromUnit = value),
+                    dropdownColor: Color(0xFF424242),
+                    style: TextStyle(color: Color(0xFFF5F5F5)),
                   ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: DropdownButton<models.Unit>(
-                    value: toUnit,
-                    isExpanded: true,
-                    items:
-                       
-                        category.units
-                                .map(
-                              
-                              (unit) => DropdownMenuItem(
-                                  value: unit,
-                                  child: Text(unit.name),
-                                ),
-                            )
-                                .toList(),
-                    onChanged: (value) => setState(() => toUnit = value),
+                  child: DropdownButton<Unit>(
+                    value: _toUnit,
+                    items: currentCategory.units
+                        .map((unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit.name),
+                            ))
+                        .toList(),
+                    onChanged: (value) => setState(() => _toUnit = value),
+                    dropdownColor: Color(0xFF424242),
+                    style: TextStyle(color: Color(0xFFF5F5F5)),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _convert,
               child: Text('Converter'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.blue,
-                textStyle: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 20),
+            if (_result.isNotEmpty)
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFF424242),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Resultado: $_result ${_toUnit!.name}',
+                  style: TextStyle(fontSize: 18),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Resultado: ${result.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
           ],
         ),
       ),

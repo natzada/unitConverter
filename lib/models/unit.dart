@@ -1,4 +1,3 @@
-// lib/models/unit.dart
 class Unit {
   final String name;
   final double Function(double) toBase; // Converte para unidade base
